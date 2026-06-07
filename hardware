@@ -1,1 +1,55 @@
+# 🔧 Components List — Land Safe Explorer
 
+## Core Components
+
+| # | Component | Model | Qty | Purpose |
+|---|---|---|---|---|
+| 1 | Microcontroller | Arduino Mega 2560 | 1 | Main brain |
+| 2 | GPS Module | NEO-6M (GY-NEO6MV2) | 1 | Location & waypoint nav |
+| 3 | Motor Driver | L298N Dual H-Bridge | 1 | Wheel motor control |
+| 4 | Metal Detector Module | Inductive sensor | 1 | Metal/mine detection |
+| 5 | Robot Chassis | 4WD Smart Car Kit | 1 | Base platform |
+| 6 | SD Card Module | SPI SD Module | 1 | GPS data logging |
+| 7 | DC Gear Motors | TT Motor 3-6V | 4 | Locomotion |
+| 8 | Li-Po Battery | 7.4V 2200mAh | 1 | Power supply |
+| 9 | Buck Converter | LM2596 | 1 | Voltage regulation |
+| 10 | Jumper Wires | M-M / M-F / F-F | — | Connections |
+
+## Optional / GPR Expansion
+
+| # | Component | Purpose |
+|---|---|---|
+| 11 | Ultrasonic Sensor (HC-SR04) | Obstacle avoidance |
+| 12 | Bluetooth Module (HC-05) | Wireless monitoring |
+| 13 | OLED Display (0.96") | Live status display |
+| 14 | Buzzer | Alert on detection |
+
+## Pin Connections
+
+### GPS Module (NEO-6M) → Arduino Mega
+| NEO-6M Pin | Arduino Pin |
+|---|---|
+| VCC | 5V |
+| GND | GND |
+| TX | RX1 (Pin 19) |
+| RX | TX1 (Pin 18) |
+
+### L298N Motor Driver → Arduino Mega
+| L298N Pin | Arduino Pin |
+|---|---|
+| IN1 | Pin 2 |
+| IN2 | Pin 3 |
+| IN3 | Pin 4 |
+| IN4 | Pin 5 |
+| ENA | Pin 9 (PWM) |
+| ENB | Pin 10 (PWM) |
+
+### SD Card Module → Arduino Mega
+| SD Pin | Arduino Pin |
+|---|---|
+| CS | Pin 53 |
+| MOSI | Pin 51 |
+| MISO | Pin 50 |
+| SCK | Pin 52 |
+| VCC | 5V |
+| GND | GND |
