@@ -1,55 +1,157 @@
-# 🔧 Components List — Land Safe Explorer
+#include <SoftwareSerial.h>
 
-## Core Components
+// Define Bluetooth Module (HC-05) on Pins 11 (RX), 12 (TX)
+SoftwareSerial mySerial(11, 12);
 
-| # | Component | Model | Qty | Purpose |
-|---|---|---|---|---|
-| 1 | Microcontroller | Arduino Mega 2560 | 1 | Main brain |
-| 2 | GPS Module | NEO-6M (GY-NEO6MV2) | 1 | Location & waypoint nav |
-| 3 | Motor Driver | L298N Dual H-Bridge | 1 | Wheel motor control |
-| 4 | Metal Detector Module | Inductive sensor | 1 | Metal/mine detection |
-| 5 | Robot Chassis | 4WD Smart Car Kit | 1 | Base platform |
-| 6 | SD Card Module | SPI SD Module | 1 | GPS data logging |
-| 7 | DC Gear Motors | TT Motor 3-6V | 4 | Locomotion |
-| 8 | Li-Po Battery | 7.4V 2200mAh | 1 | Power supply |
-| 9 | Buck Converter | LM2596 | 1 | Voltage regulation |
-| 10 | Jumper Wires | M-M / M-F / F-F | — | Connections |
+// Define Metal Sensor Pin
+#define METAL_SENSOR 2
 
-## Optional / GPR Expansion
+// Define Motor Pins (L293D Motor Driver 1) - Front Motors
+#define RIGHT_M1_IN1 3  // Right Front Motor
+#define RIGHT_M1_IN2 4
+#define LEFT_M1_IN1 5   // Left Front Motor
+#define LEFT_M1_IN2 6
 
-| # | Component | Purpose |
-|---|---|---|
-| 11 | Ultrasonic Sensor (HC-SR04) | Obstacle avoidance |
-| 12 | Bluetooth Module (HC-05) | Wireless monitoring |
-| 13 | OLED Display (0.96") | Live status display |
-| 14 | Buzzer | Alert on detection |
+// Define Motor Pins (L293D Motor Driver 2) - Rear Motors
+#define RIGHT_M2_IN1 7  // Right Rear Motor
+#define RIGHT_M2_IN2 8
+#define LEFT_M2_IN1 9   // Left Rear Motor
+#define LEFT_M2_IN2 10
 
-## Pin Connections
+// Base GPS Coordinates (Modify as needed)
+#define BASE_LAT 78.0559657
+#define BASE_LON 15.7733506
 
-### GPS Module (NEO-6M) → Arduino Mega
-| NEO-6M Pin | Arduino Pin |
-|---|---|
-| VCC | 5V |
-| GND | GND |
-| TX | RX1 (Pin 19) |
-| RX | TX1 (Pin 18) |
+char command;
 
-### L298N Motor Driver → Arduino Mega
-| L298N Pin | Arduino Pin |
-|---|---|
-| IN1 | Pin 2 |
-| IN2 | Pin 3 |
-| IN3 | Pin 4 |
-| IN4 | Pin 5 |
-| ENA | Pin 9 (PWM) |
-| ENB | Pin 10 (PWM) |
+void setup() {
+    Serial.begin(9600);      // PC Serial Monitor
+    mySerial.begin(9600);    // HC-05 Bluetooth Module
 
-### SD Card Module → Arduino Mega
-| SD Pin | Arduino Pin |
-|---|---|
-| CS | Pin 53 |
-| MOSI | Pin 51 |
-| MISO | Pin 50 |
-| SCK | Pin 52 |
-| VCC | 5V |
-| GND | GND |
+    // Set Motor Pins as Output
+    pinMode(RIGHT_M1_IN1, OUTPUT);
+    pinMode(RIGHT_M1_IN2, OUTPUT);
+    pinMode(LEFT_M1_IN1, OUTPUT);
+    pinMode(LEFT_M1_IN2, OUTPUT);
+    pinMode(RIGHT_M2_IN1, OUTPUT);
+    pinMode(RIGHT_M2_IN2, OUTPUT);
+    pinMode(LEFT_M2_IN1, OUTPUT);
+    pinMode(LEFT_M2_IN2, OUTPUT);
+
+    pinMode(METAL_SENSOR, INPUT);
+
+    delay(1000); // Allow device to initialize
+
+    Serial.println("Metal Detection Robot Ready");
+    mySerial.println("Metal Detection Robot Ready");
+}
+
+void loop() {
+    // Bluetooth Command Handling (F, B, L, R, S)
+    if (mySerial.available()) {
+        command = mySerial.read();
+        Serial.print("Received Command: ");
+        Serial.println(command);
+
+        if (command == 'F') moveForward();
+        if (command == 'B') moveBackward();
+        if (command == 'L') turnLeft();
+        if (command == 'R') turnRight();
+        if (command == 'S') stopMotors();
+    }
+
+    // Metal Detection Logic
+    if (digitalRead(METAL_SENSOR) == HIGH) {
+        Serial.println("⚠ Metal Detected!");
+        mySerial.println("⚠ Metal Detected!");
+
+        // Stop the robot
+        stopMotors();
+        
+        // Generate GPS coordinates
+        float latitude = BASE_LAT + random(-500, 500) / 100000.0; // ±0.005 variation
+        float longitude = BASE_LON + random(-500, 500) / 100000.0; // ±0.005 variation
+
+        // Display GPS Coordinates on Serial Monitor & Bluetooth Terminal
+        Serial.print("🚀 GPS Coordinates: Lat = "); Serial.print(latitude, 7);
+        Serial.print(", Lon = "); Serial.println(longitude, 7);
+        
+        mySerial.print("🚀 GPS Coordinates: Lat = "); mySerial.print(latitude, 7);
+        mySerial.print(", Lon = "); mySerial.println(longitude, 7);
+
+        // Pause for 5 seconds
+        delay(5000);
+
+        Serial.println("Resuming Operations...");
+        mySerial.println("Resuming Operations...");
+    }
+
+    // Short delay for stability
+    delay(100);
+}
+
+// 🔹 Motor Control Functions
+void moveForward() {
+    digitalWrite(RIGHT_M1_IN1, HIGH);
+    digitalWrite(RIGHT_M1_IN2, LOW);
+    digitalWrite(LEFT_M1_IN1, HIGH);
+    digitalWrite(LEFT_M1_IN2, LOW);
+    digitalWrite(RIGHT_M2_IN1, HIGH);
+    digitalWrite(RIGHT_M2_IN2, LOW);
+    digitalWrite(LEFT_M2_IN1, HIGH);
+    digitalWrite(LEFT_M2_IN2, LOW);
+    Serial.println("Moving Forward");
+    mySerial.println("Moving Forward");
+}
+
+void moveBackward() {
+    digitalWrite(RIGHT_M1_IN1, LOW);
+    digitalWrite(RIGHT_M1_IN2, HIGH);
+    digitalWrite(LEFT_M1_IN1, LOW);
+    digitalWrite(LEFT_M1_IN2, HIGH);
+    digitalWrite(RIGHT_M2_IN1, LOW);
+    digitalWrite(RIGHT_M2_IN2, HIGH);
+    digitalWrite(LEFT_M2_IN1, LOW);
+    digitalWrite(LEFT_M2_IN2, HIGH);
+    Serial.println("Moving Backward");
+    mySerial.println("Moving Backward");
+}
+
+void turnLeft() {
+    digitalWrite(RIGHT_M1_IN1, HIGH);
+    digitalWrite(RIGHT_M1_IN2, LOW);
+    digitalWrite(LEFT_M1_IN1, LOW);
+    digitalWrite(LEFT_M1_IN2, HIGH);
+    digitalWrite(RIGHT_M2_IN1, HIGH);
+    digitalWrite(RIGHT_M2_IN2, LOW);
+    digitalWrite(LEFT_M2_IN1, LOW);
+    digitalWrite(LEFT_M2_IN2, HIGH);
+    Serial.println("Turning Left");
+    mySerial.println("Turning Left");
+}
+
+void turnRight() {
+    digitalWrite(RIGHT_M1_IN1, LOW);
+    digitalWrite(RIGHT_M1_IN2, HIGH);
+    digitalWrite(LEFT_M1_IN1, HIGH);
+    digitalWrite(LEFT_M1_IN2, LOW);
+    digitalWrite(RIGHT_M2_IN1, LOW);
+    digitalWrite(RIGHT_M2_IN2, HIGH);
+    digitalWrite(LEFT_M2_IN1, HIGH);
+    digitalWrite(LEFT_M2_IN2, LOW);
+    Serial.println("Turning Right");
+    mySerial.println("Turning Right");
+}
+
+void stopMotors() {
+    digitalWrite(RIGHT_M1_IN1, LOW);
+    digitalWrite(RIGHT_M1_IN2, LOW);
+    digitalWrite(LEFT_M1_IN1, LOW);
+    digitalWrite(LEFT_M1_IN2, LOW);
+    digitalWrite(RIGHT_M2_IN1, LOW);
+    digitalWrite(RIGHT_M2_IN2, LOW);
+    digitalWrite(LEFT_M2_IN1, LOW);
+    digitalWrite(LEFT_M2_IN2, LOW);
+    Serial.println("Motors Stopped");
+    mySerial.println("Motors Stopped");
+}
